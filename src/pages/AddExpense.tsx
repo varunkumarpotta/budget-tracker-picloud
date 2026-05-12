@@ -36,8 +36,8 @@ export default function AddExpense() {
   const [shared, setShared] = useState(false);
   const [sharedWith, setSharedWith] = useState<"FAMILY" | "FRIENDS">("FRIENDS");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
-  const [splitType, setSplitType] = useState<"EQUAL" | "CUSTOM">("EQUAL");
-  const [customFriendShares, setCustomFriendShares] = useState<Record<string, string>>({});
+  const [splitType, setSplitType] = useState<"EQUAL" | "EXACT" | "SHARES">("EQUAL");
+  const [splitValues, setSplitValues] = useState<Record<string, string>>({"me": "1"});
   
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,27 +81,31 @@ export default function AddExpense() {
     return Number.isFinite(n) && n > 0 ? n : null;
   }, [amount]);
 
-  const customSharesTotal = useMemo(() => {
+  const splitValuesSum = useMemo(() => {
     let sum = 0;
-    Object.values(customFriendShares).forEach(val => {
+    Object.values(splitValues).forEach(val => {
       const n = Number(val);
-      if (Number.isFinite(n) && n > 0) sum += n;
+      if (Number.isFinite(n) && n >= 0) sum += n;
     });
     return sum;
-  }, [customFriendShares]);
+  }, [splitValues]);
 
   const calculatedMyShare = useMemo(() => {
     if (!parsedAmount || !shared) return null;
-    if (sharedWith === "FAMILY") return parsedAmount / 2; // Default family split assumption
+    if (sharedWith === "FAMILY") return parsedAmount / 2;
     
-    if (splitType === "CUSTOM") {
-      return Math.max(parsedAmount - customSharesTotal, 0);
+    if (splitType === "EXACT") {
+      return Number(splitValues["me"] || 0);
+    } else if (splitType === "SHARES") {
+      if (splitValuesSum <= 0) return 0;
+      return parsedAmount * (Number(splitValues["me"] || 0) / splitValuesSum);
     } else {
-      // EQUAL
       const totalPeople = 1 + selectedFriends.length;
       return parsedAmount / totalPeople;
     }
-  }, [parsedAmount, shared, sharedWith, splitType, customSharesTotal, selectedFriends.length]);
+  }, [parsedAmount, shared, sharedWith, splitType, splitValuesSum, splitValues, selectedFriends.length]);
+
+  const exactSplitValid = splitType !== "EXACT" || Math.abs((splitValuesSum || 0) - (parsedAmount || 0)) < 0.1;
 
   const receivable =
     parsedAmount && calculatedMyShare !== null ? Math.max(parsedAmount - calculatedMyShare, 0) : null;
@@ -111,7 +115,11 @@ export default function AddExpense() {
     if (!merchant.trim()) return false;
     if (!category.trim()) return false;
     if (type === "EXPENSE" && shared) {
-      if (sharedWith === "FRIENDS" && selectedFriends.length === 0) return false;
+      if (sharedWith === "FRIENDS") {
+        if (selectedFriends.length === 0) return false;
+        if (splitType === "EXACT" && !exactSplitValid) return false;
+        if (splitType === "SHARES" && splitValuesSum <= 0) return false;
+      }
       if (calculatedMyShare === null) return false;
     }
     return true;
@@ -123,8 +131,8 @@ export default function AddExpense() {
     );
   };
 
-  const handleCustomShareChange = (friendId: string, val: string) => {
-    setCustomFriendShares(prev => ({ ...prev, [friendId]: val }));
+  const handleSplitValueChange = (id: string, val: string) => {
+    setSplitValues(prev => ({ ...prev, [id]: val }));
   };
 
   async function onSave() {
@@ -139,12 +147,18 @@ export default function AddExpense() {
       if (sharedWith === "FAMILY") {
         notesData = JSON.stringify({ splitGroup: "FAMILY", receivable });
       } else {
+        let friendsShares: Record<string, number> = {};
+        if (splitType === "EQUAL") {
+          selectedFriends.forEach(fId => { friendsShares[fId] = receivable ? receivable / selectedFriends.length : 0 });
+        } else if (splitType === "EXACT") {
+          selectedFriends.forEach(fId => { friendsShares[fId] = Number(splitValues[fId] || 0) });
+        } else if (splitType === "SHARES") {
+          selectedFriends.forEach(fId => { friendsShares[fId] = parsedAmount * (Number(splitValues[fId] || 0) / splitValuesSum) });
+        }
         notesData = JSON.stringify({
           splitGroup: "FRIENDS",
           splitType,
-          friends: splitType === "EQUAL" 
-            ? selectedFriends.reduce((acc, fId) => ({...acc, [fId]: receivable ? receivable / selectedFriends.length : 0}), {}) 
-            : customFriendShares
+          friends: friendsShares
         });
       }
     }
@@ -331,48 +345,80 @@ export default function AddExpense() {
               {selectedFriends.length > 0 && (
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <div>
-                    <div className="flex bg-app-surface/40 p-1 rounded-xl mb-3">
+                    <div className="flex bg-app-surface/40 p-1 rounded-xl mb-3 overflow-x-auto scrollbar-hide">
                       <button
                         onClick={() => setSplitType("EQUAL")}
-                        className={`flex-1 flex justify-center py-1.5 text-xs font-semibold rounded-lg transition ${splitType === "EQUAL" ? "bg-app-surface text-app-foreground shadow-sm" : "text-app-muted hover:text-app-foreground"}`}
+                        className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition ${splitType === "EQUAL" ? "bg-app-surface text-app-foreground shadow-sm" : "text-app-muted hover:text-app-foreground"}`}
                       >
-                        Split Equally
+                        Equally
                       </button>
                       <button
-                        onClick={() => setSplitType("CUSTOM")}
-                        className={`flex-1 flex justify-center py-1.5 text-xs font-semibold rounded-lg transition ${splitType === "CUSTOM" ? "bg-app-surface text-app-foreground shadow-sm" : "text-app-muted hover:text-app-foreground"}`}
+                        onClick={() => setSplitType("EXACT")}
+                        className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition ${splitType === "EXACT" ? "bg-app-surface text-app-foreground shadow-sm" : "text-app-muted hover:text-app-foreground"}`}
                       >
-                        Custom Shares
+                        Exact Amounts
+                      </button>
+                      <button
+                        onClick={() => setSplitType("SHARES")}
+                        className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition ${splitType === "SHARES" ? "bg-app-surface text-app-foreground shadow-sm" : "text-app-muted hover:text-app-foreground"}`}
+                      >
+                        By Shares
                       </button>
                     </div>
                     
-                    {splitType === "CUSTOM" && (
-                      <div className="space-y-2 mt-3">
+                    {(splitType === "EXACT" || splitType === "SHARES") && (
+                      <div className="space-y-2 mt-3 bg-app-surface/20 p-3 rounded-xl border border-app-border/40">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-app-border/40">
+                          <span className="text-xs font-semibold flex-1">Your Share</span>
+                          <Input
+                            value={splitValues["me"] || ""}
+                            onChange={(e) => handleSplitValueChange("me", e.target.value)}
+                            placeholder={splitType === "EXACT" ? "0.00" : "1"}
+                            inputMode="decimal"
+                            className="w-24 h-8 text-xs font-medium"
+                          />
+                        </div>
                         {selectedFriends.map(fId => {
                           const friend = friends.find(f => f.id === fId);
                           return (
                             <div key={fId} className="flex items-center gap-2">
                               <span className="text-xs font-semibold flex-1">{friend?.name}</span>
                               <Input
-                                value={customFriendShares[fId] || ""}
-                                onChange={(e) => handleCustomShareChange(fId, e.target.value)}
-                                placeholder="0"
+                                value={splitValues[fId] || ""}
+                                onChange={(e) => handleSplitValueChange(fId, e.target.value)}
+                                placeholder={splitType === "EXACT" ? "0.00" : "1"}
                                 inputMode="decimal"
                                 className="w-24 h-8 text-xs"
                               />
                             </div>
                           );
                         })}
-                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-app-border/40">
-                          <span className="text-xs font-semibold flex-1 text-app-muted">Your Share (Auto)</span>
-                          <span className="text-sm font-semibold">{inr.format(calculatedMyShare || 0)}</span>
-                        </div>
+                        {splitType === "EXACT" && !exactSplitValid && (
+                          <div className="text-[10px] text-red-400 mt-2 font-medium">
+                            Amounts sum to {inr.format(splitValuesSum)}, expected {inr.format(parsedAmount || 0)}.
+                          </div>
+                        )}
+                        {splitType === "SHARES" && (
+                          <div className="text-[10px] text-app-muted mt-2">
+                            Total parts: {splitValuesSum}. Your share: {inr.format(calculatedMyShare || 0)}.
+                          </div>
+                        )}
                       </div>
                     )}
                     
                     {splitType === "EQUAL" && (
-                      <div className="text-sm text-app-muted mt-2">
-                        Splitting {inr.format(parsedAmount || 0)} equally between you and {selectedFriends.length} friend(s).
+                      <div className="space-y-1 mt-3 bg-app-surface/20 p-3 rounded-xl border border-app-border/40">
+                        <div className="text-[11px] text-app-muted mb-2 font-medium">Splitting {inr.format(parsedAmount || 0)} equally:</div>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-semibold">You</span>
+                          <span className="font-medium">{inr.format(calculatedMyShare || 0)}</span>
+                        </div>
+                        {selectedFriends.map(fId => (
+                          <div key={fId} className="flex justify-between text-xs">
+                            <span className="text-app-muted">{friends.find(f => f.id === fId)?.name}</span>
+                            <span className="font-medium text-emerald-400">{inr.format((parsedAmount || 0) / (selectedFriends.length + 1))}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

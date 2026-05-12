@@ -16,6 +16,8 @@ type ExpenseRow = {
   shared: boolean;
   occurredAt: string;
   rawOccurredAt: string;
+  notes?: string | null;
+  myShareMinor?: number;
 };
 
 const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" });
@@ -31,7 +33,8 @@ export default function ExpenseHistory() {
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const month = useMemo(() => monthKey(new Date()), []);
 
-  // Edit state
+  // Expanded and Edit state
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMerchant, setEditMerchant] = useState("");
   const [editAmount, setEditAmount] = useState("");
@@ -51,6 +54,8 @@ export default function ExpenseHistory() {
       shared: e.kind === "SHARED",
       occurredAt: formatExpenseTime(e.occurredAt),
       rawOccurredAt: e.occurredAt,
+      notes: e.notes,
+      myShareMinor: e.myShareMinor,
     }));
   }, [listForMonth, month]);
 
@@ -137,7 +142,15 @@ export default function ExpenseHistory() {
           </Card>
         ) : (
           filtered.map((row) => (
-            <Card key={row.id} className="p-4 group overflow-hidden">
+            <Card 
+              key={row.id} 
+              className={`p-4 group overflow-hidden transition-colors cursor-pointer ${expandedId === row.id ? "bg-app-surface/60" : ""}`}
+              onClick={() => {
+                if (editingId !== row.id) {
+                  setExpandedId(expandedId === row.id ? null : row.id);
+                }
+              }}
+            >
               {editingId === row.id ? (
                 <div className="flex items-center gap-3 w-full">
                   <div className="flex-1 space-y-2">
@@ -187,19 +200,76 @@ export default function ExpenseHistory() {
                     <div className="text-sm font-semibold">{inr.format(row.amount)}</div>
                     <div className="mt-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                       <button 
-                        onClick={() => openEdit(row)} 
+                        onClick={(e) => { e.stopPropagation(); openEdit(row); }} 
                         className="p-1.5 rounded-lg bg-app-surface border border-app-border/40 text-app-muted hover:text-app-foreground"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button 
-                        onClick={() => handleDelete(row.id)} 
+                        onClick={(e) => { e.stopPropagation(); handleDelete(row.id); }} 
                         className="p-1.5 rounded-lg bg-app-surface border border-app-border/40 text-red-400 hover:text-red-500 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+              
+              {expandedId === row.id && !editingId && (
+                <div className="mt-4 pt-3 border-t border-app-border/40 text-sm">
+                  {row.shared && row.notes ? (
+                    <div className="space-y-2 bg-app-surface/40 p-3 rounded-xl border border-app-border/30">
+                      <div className="text-xs font-semibold text-[rgb(var(--accent))] uppercase tracking-wider mb-2">Split Details</div>
+                      {(() => {
+                        try {
+                          const details = JSON.parse(row.notes);
+                          return (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-app-muted">Group</span>
+                                <span className="font-medium">{details.splitGroup}</span>
+                              </div>
+                              {details.splitType && (
+                                <div className="flex justify-between">
+                                  <span className="text-app-muted">Type</span>
+                                  <span className="font-medium">{details.splitType}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <span className="text-app-muted">Your Share</span>
+                                <span className="font-medium">{inr.format(fromMinor(row.myShareMinor || 0))}</span>
+                              </div>
+                              {details.friends && (
+                                <div className="mt-2 pt-2 border-t border-app-border/30 space-y-1">
+                                  {Object.entries(details.friends).map(([friendId, amt]) => {
+                                    // Try to fetch friend name from local storage if possible, else use ID snippet
+                                    const stored = localStorage.getItem("ledgerly:friends");
+                                    let name = "Friend " + friendId.slice(0, 4);
+                                    if (stored) {
+                                      const friendsArr = JSON.parse(stored);
+                                      const found = friendsArr.find((f: any) => f.id === friendId);
+                                      if (found) name = found.name;
+                                    }
+                                    return (
+                                      <div key={friendId} className="flex justify-between text-xs">
+                                        <span className="text-app-muted">{name}</span>
+                                        <span className="font-medium text-emerald-400">{inr.format(Number(amt))}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          );
+                        } catch (e) {
+                          return <div className="text-xs text-app-muted">Invalid details.</div>;
+                        }
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-app-muted">No additional details for this personal expense.</div>
+                  )}
                 </div>
               )}
             </Card>

@@ -94,7 +94,7 @@ export default function Dashboard() {
             <div className="text-xs font-semibold text-app-muted">Your share</div>
             <Sparkles className="h-4 w-4 text-app-muted" />
           </div>
-          <div className="mt-2 text-2xl font-semibold">{inr.format(stats.myShare)}</div>
+          <div className="mt-2 font-display text-3xl tracking-tight">{inr.format(stats.myShare)}</div>
           <div className="mt-2 text-xs text-app-muted">
             Paid {inr.format(stats.totalPaid)} · Receivable{" "}
             <span className="text-emerald-400">{inr.format(stats.receivable)}</span>
