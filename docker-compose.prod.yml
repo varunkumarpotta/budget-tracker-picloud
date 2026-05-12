@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  picloud-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: picloud-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://picloud:Varunbike@1234@picloud-db:5432/picloud
+      - PORT=5000
+      - JWT_SECRET=varunbike_secure_jwt_secret_123!
+      - NODE_ENV=production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - picloud-db
+
+  picloud-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: picloud-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - picloud-api
