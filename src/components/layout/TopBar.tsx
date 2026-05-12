@@ -39,7 +39,7 @@ export default function TopBar() {
           <div className="truncate font-display text-lg tracking-tight text-app-foreground">
             {title}
           </div>
-          <div className="text-xs text-app-muted">Tap to add, swipe to review, settle monthly</div>
+          <div className="truncate text-xs text-app-muted">Tap to add, swipe to review, settle monthly</div>
         </div>
 
         <button className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-app-border/60 bg-app-surface/40 text-app-foreground transition hover:bg-app-surface/70">

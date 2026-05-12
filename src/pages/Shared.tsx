@@ -202,8 +202,8 @@ export default function Shared() {
                 const balance = sharedStats.friendBalances[f.id] || 0;
                 return (
                   <div key={f.id} className="flex justify-between items-center rounded-xl border border-app-border/60 bg-app-surface/40 px-3 py-2.5 text-sm">
-                    <div className="font-medium text-app-foreground">{f.name}</div>
-                    <div className="flex items-center gap-3">
+                    <div className="font-medium text-app-foreground truncate mr-2">{f.name}</div>
+                    <div className="flex items-center gap-3 shrink-0">
                       {balance > 0 ? (
                         <span className="text-emerald-400 font-semibold text-xs text-right">owes you<br/>{inr.format(balance)}</span>
                       ) : (
