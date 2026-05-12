@@ -1,0 +1,13 @@
+UPDATE categories SET icon = '🍔' WHERE name = 'Food' AND icon IS NULL;
+UPDATE categories SET icon = '🛵' WHERE name = 'Food Delivery' AND icon IS NULL;
+UPDATE categories SET icon = '🛒' WHERE name = 'Groceries' AND icon IS NULL;
+UPDATE categories SET icon = '✈️' WHERE name = 'Travel' AND icon IS NULL;
+UPDATE categories SET icon = '🛍️' WHERE name = 'Shopping' AND icon IS NULL;
+UPDATE categories SET icon = '📱' WHERE name = 'Subscriptions' AND icon IS NULL;
+UPDATE categories SET icon = '💊' WHERE name = 'Health' AND icon IS NULL;
+UPDATE categories SET icon = '🏠' WHERE name = 'Family' AND icon IS NULL;
+UPDATE categories SET icon = '⚡' WHERE name = 'Utilities' AND icon IS NULL;
+UPDATE categories SET icon = '🎬' WHERE name = 'Entertainment' AND icon IS NULL;
+UPDATE categories SET icon = '📚' WHERE name = 'Education' AND icon IS NULL;
+UPDATE categories SET icon = '🔑' WHERE name = 'Rent' AND icon IS NULL;
+UPDATE categories SET icon = '📝' WHERE name = 'Other' AND icon IS NULL;

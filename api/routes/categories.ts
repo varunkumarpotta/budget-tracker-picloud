@@ -6,9 +6,19 @@ import { getUserId } from "../middleware/auth.js";
 const router = Router();
 
 const DEFAULT_CATEGORIES = [
-  "Food", "Food Delivery", "Groceries", "Travel", "Shopping",
-  "Subscriptions", "Health", "Family", "Utilities", "Entertainment",
-  "Education", "Rent", "Other",
+  { name: "Food", icon: "🍔" },
+  { name: "Food Delivery", icon: "🛵" },
+  { name: "Groceries", icon: "🛒" },
+  { name: "Travel", icon: "✈️" },
+  { name: "Shopping", icon: "🛍️" },
+  { name: "Subscriptions", icon: "📱" },
+  { name: "Health", icon: "💊" },
+  { name: "Family", icon: "🏠" },
+  { name: "Utilities", icon: "⚡" },
+  { name: "Entertainment", icon: "🎬" },
+  { name: "Education", icon: "📚" },
+  { name: "Rent", icon: "🔑" },
+  { name: "Other", icon: "📝" },
 ];
 
 /**
@@ -27,13 +37,13 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   if (result.rows.length === 0) {
     const defaultData = [];
     let order = 0;
-    for (const name of DEFAULT_CATEGORIES) {
+    for (const cat of DEFAULT_CATEGORIES) {
       const id = randomUUID();
       await pool.query(
-        `insert into categories (id, user_id, name, sort_order) values ($1, $2, $3, $4) on conflict do nothing`,
-        [id, userId, name, order],
+        `insert into categories (id, user_id, name, icon, sort_order) values ($1, $2, $3, $4, $5) on conflict do nothing`,
+        [id, userId, cat.name, cat.icon, order],
       );
-      defaultData.push({ id, name, icon: null, sort_order: order });
+      defaultData.push({ id, name: cat.name, icon: cat.icon, sort_order: order });
       order++;
     }
     res.json({
@@ -185,11 +195,11 @@ router.post("/seed", async (req: Request, res: Response): Promise<void> => {
   }
 
   let order = 0;
-  for (const name of DEFAULT_CATEGORIES) {
+  for (const cat of DEFAULT_CATEGORIES) {
     const id = randomUUID();
     await pool.query(
-      `insert into categories (id, user_id, name, sort_order) values ($1, $2, $3, $4) on conflict do nothing`,
-      [id, userId, name, order],
+      `insert into categories (id, user_id, name, icon, sort_order) values ($1, $2, $3, $4, $5) on conflict do nothing`,
+      [id, userId, cat.name, cat.icon, order],
     );
     order++;
   }

@@ -177,8 +177,8 @@ export default function Dashboard() {
             <Users className="h-5 w-5 text-app-muted" />
           </div>
 
-          <div className="space-y-3 flex-1">
-            <div className="rounded-2xl border border-app-border/60 bg-app-surface/40 p-4 h-full flex flex-col justify-center">
+          <div className="flex flex-col gap-3 flex-1">
+            <div className="rounded-2xl border border-app-border/60 bg-app-surface/40 p-4 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
@@ -194,7 +194,7 @@ export default function Dashboard() {
               <div className="mt-2 text-[10px] text-app-muted uppercase tracking-wider text-right">Pending Receivable</div>
             </div>
             
-            <div className="rounded-2xl border border-app-border/60 bg-app-surface/40 p-4 h-full flex flex-col justify-center">
+            <div className="rounded-2xl border border-app-border/60 bg-app-surface/40 p-4 flex-1 flex flex-col justify-center">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
