@@ -1,4 +1,4 @@
-export type ExpenseKind = "PERSONAL" | "SHARED";
+export type ExpenseKind = "PERSONAL" | "SHARED" | "INCOME";
 
 export type Expense = {
   id: string;
