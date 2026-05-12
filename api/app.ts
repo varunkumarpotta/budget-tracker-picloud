@@ -15,6 +15,7 @@ import groupRoutes from './routes/groups.js'
 import categoryRoutes from './routes/categories.js'
 import cardRoutes from './routes/cards.js'
 import alertRoutes from './routes/alerts.js'
+import { aiRouter } from './routes/ai.js'
 
 // load env
 dotenv.config()
@@ -35,6 +36,7 @@ app.use('/api/v1/groups', groupRoutes)
 app.use('/api/v1/categories', categoryRoutes)
 app.use('/api/v1/cards', cardRoutes)
 app.use('/api/v1/alerts', alertRoutes)
+app.use('/api/v1/ai', aiRouter)
 
 /**
  * health

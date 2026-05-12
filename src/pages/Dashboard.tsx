@@ -2,6 +2,7 @@ import { ArrowUpRight, CreditCard, Sparkles, TrendingUp, Users, User, Share2, Pi
 import { useEffect, useMemo } from "react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import AIRecommendations from "@/components/dashboard/AIRecommendations";
 import { monthKey } from "@/lib/date";
 import { fromMinor } from "@/lib/money";
 import { refreshExpensesForMonth, useExpenseStore } from "@/stores/expenseStore";
@@ -212,6 +213,8 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+
+      <AIRecommendations />
     </div>
   );
 }
