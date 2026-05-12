@@ -195,7 +195,7 @@ export default function AddExpense() {
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 min-w-0">
             <div className="mb-1 text-xs font-semibold text-app-muted">Amount</div>
             <Input
               value={amount}
@@ -206,7 +206,7 @@ export default function AddExpense() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 min-w-0">
             <div className="mb-1 text-xs font-semibold text-app-muted">{type === "INCOME" ? "Source / Sender" : "Merchant"}</div>
             <Input
               value={merchant}
@@ -215,7 +215,7 @@ export default function AddExpense() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 min-w-0">
             <div className="mb-2 text-xs font-semibold text-app-muted">Category</div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {currentCategories.map(c => (
@@ -236,7 +236,7 @@ export default function AddExpense() {
             </div>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 min-w-0">
             <div className="mb-1 text-xs font-semibold text-app-muted">{type === "INCOME" ? "Destination Account" : "Payment source"}</div>
             <select
               value={payment}

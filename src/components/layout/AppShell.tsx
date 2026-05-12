@@ -5,7 +5,7 @@ import TopBar from "./TopBar";
 
 export default function AppShell() {
   return (
-    <div className="min-h-dvh bg-app text-app-foreground">
+    <div className="min-h-dvh bg-app text-app-foreground overflow-x-hidden w-full">
       <div className="mx-auto flex max-w-7xl">
         <SidebarNav />
         <div className="min-w-0 flex-1">
